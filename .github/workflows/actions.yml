@@ -1,28 +1,63 @@
-name: Python package
+## 1. Input: Travis CI
+# Copyright 2019 IBM Corporation All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
 
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11, pypy3.8, pypy2.7]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.8
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox
-    - name: Test with tox
+        python -m pip install .
+
+    - name: Lint and test
       run: |
-        tox
-    - name: Debug info
-      run: |
-        python debug-info.py
+        ./lint.sh && ./test.sh
+
+    - name: SonarCloud Scan
+      if: github.event_name != 'pull_request' && github.repository == 'IBM/qpylib'
+      uses: kitabisa/sonar-action@master
+      with:
+        host: ${{ secrets.SONAR_HOST }}
+        login: ${{ secrets.SONAR_TOKEN }}
+        projectKey: qradar-app-framework
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: ./build.sh ${GITHUB_REF#refs/tags/}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/qpylib-${{ github.ref#refs/tags/*}}.tar.gz
+          dist/qpylib-${{ github.ref#refs/tags/*}}-py3-none-any.whl
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
