@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 'nightly']
+        python-version: [3.8, 3.9, 3.10, 3.11]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,24 +24,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install simplejson minimock coverage
-    - name: Test with make
+        pip install . pytest-cov pytest
+    - name: Test with pytest
       run: |
-        make test
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Package
-      run: |
-        python setup.py sdist bdist_wheel
-      env:
-        PYPI_USER: "gpodder"
-        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-    - name: Publish
-      uses: pypa/gh-action-pypi-publish@release/v1
+        python -m pytest --cov=ansimarkup tests
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_PASSWORD }}
-        repository_url: https://test.pypi.org/legacy/
+        github-token: ${{ secrets.GITHUB_TOKEN }}
