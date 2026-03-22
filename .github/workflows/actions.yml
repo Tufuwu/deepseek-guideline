@@ -4,35 +4,22 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-  schedule:
-    - cron: '0 0 * * *'
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
-        node-version: 'lts/*'
-
+        node-version: ${{ matrix.node-version }}
     - run: npm ci
-
-    - run: npm run build.data
-    - run: npm run build.site
-
-    - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@4.1.5
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: master
-        FOLDER: .
-        CLEAN: true
-        KEEP_HISTORY: true
-        VERBOSE: true
+    - run: npm run build --if-present
+    - run: npm test
