@@ -1,33 +1,38 @@
-## 4. Output: GitHub Action
-name: Node CI
+Here is the GitHub Action configuration based on the Travis CI configuration you provided:
+
+name: Python package
 
 on: [push, pull_request]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v1
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
       with:
-        node-version: 14
-
-    - name: Cache node modules
-      uses: actions/cache@v2
+        python-version: 3.8
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
       with:
-        path: node_modules
-        key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-node-
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy==${{ env.NUMPY_VERSION }} astropy==${{ env.ASTROPY_VERSION }} pytest-cov
+        if [[ -n ${{ env.PIP_DEPENDENCIES }} ]]; then pip install ${{ env.PIP_DEPENDENCIES }}; fi
+        if [[ -n ${{ env.CONDA_DEPENDENCIES }} ]]; then conda install ${{ env.CONDA_DEPENDENCIES }}; fi
+    - name: Test with pytest
+      run: |
+        pytest
+    - name: Code Climate
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: 3b872f454e56a7bae149bd9ec6b24c83e6d5856ce08035a8c2e739e67c410d70
+      with:
+        coverageCommand: pytest --cov=.
+        debug: true
 
-    - name: Install Dependencies
-      run: yarn install
-
-    - name: Build Inspector View
-      run: yarn build:inspectorView
-
-    - name: Build Edit Mode
-      run: yarn build:editMode
