@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Node CI
 
 on: [push, pull_request]
 
@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10, 12, 14, 16]
+        node-version: ['0.12', '4']
 
     steps:
     - uses: actions/checkout@v2
@@ -17,6 +17,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: npm -g i npm@2
+      if: matrix.node-version == '0.12'
+    - run: npm -g i npm@3
+      if: matrix.node-version == '4'
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
