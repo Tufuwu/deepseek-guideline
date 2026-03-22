@@ -7,16 +7,14 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x, 16.x, 17.x]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install ${{ env.WINSTON_VER }}
-      env:
-        WINSTON_VER: winston@3
+        node-version: node
+    - run: npm ci
+    - run: make clean
+    - run: make
+    - run: npx mocha-headless-chrome -a no-sandbox -f test/index.html
+
