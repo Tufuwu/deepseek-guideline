@@ -1,7 +1,10 @@
-## GitHub Action Configuration
-name: CI
+name: Python package
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -20,17 +23,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        sed '/pypandoc/d' -i requirements.txt
         python -m pip install --upgrade pip
-        pip install codecov
         pip install -r requirements.txt
-        pip install -r test-requirements.txt
-    - name: Lint with flake8
-      run: flake8 stockstats.py test.py
-    - name: Test with pytest
-      run: py.test --cov=./ test.py
-    - name: Coverage
-      run: codecov
-
-notifications:
-  email:
-    - jealous@163.com
+        python setup.py install
+    - name: Test with pytest and pycodestyle
+      run: |
+        py.test --cov=ssh_ldap_pubkey --cov-report term -vv
+        pycodestyle
+    - name: Deploy to PyPI
+      if: startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: jirutka
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        skip_existing: true
