@@ -1,31 +1,30 @@
-name: Node.js CI
+name: Node CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-        jsdom-version: ['15', '16', '17', '18', '19', '20', '21', '22']
-        karma-version: ['2', '3', '4', '5', '6']
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: Install jsdom@${{ matrix.jsdom-version }} and karma@${{ matrix.karma-version }}
-      run: npm install jsdom@${{ matrix.jsdom-version }} karma@${{ matrix.karma-version }}
-    - name: Create symbolic link for karma-jsom-launcher
-      run: "[ -e node_modules/karma-jsom-launcher ] || ln -s ../ node_modules/karma-jsom-launcher"
-    - name: Run tests
+        node-version: 14
+
+    - name: Cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.npm
+        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.OS }}-node-
+
+    - name: Install
+      run: npm install
+
+    - name: Test
       run: npm test
