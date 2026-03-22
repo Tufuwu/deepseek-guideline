@@ -1,16 +1,15 @@
-Here is the equivalent GitHub Action configuration for the provided Travis CI configuration:
-
 name: Node CI
 
 on: [push, pull_request]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [6, 7, 8, 9, 10]
+        node-version: [6, 8, 10]
 
     steps:
     - uses: actions/checkout@v2
@@ -21,4 +20,3 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
-
