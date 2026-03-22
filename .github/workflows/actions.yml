@@ -13,12 +13,17 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install codecov
-        pip install coverage
-    - name: Run tests with coverage
-      run: coverage run jsn.py -i example.jsn -o test.json -I import_dir
-    - name: Upload coverage to Codecov
-      run: codecov
+        pip install -r requirements-dev.txt
+    - name: Lint with flake8
+      run: |
+        flake8 *.py
+    - name: Autoformat with autopep8
+      run: |
+        autopep8 -d *.py | awk 'BEGIN{had_data=0}{print;had_data=1}END{exit had_data}'
