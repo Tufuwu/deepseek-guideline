@@ -1,23 +1,23 @@
 name: Node CI
+
 on: [push, pull_request]
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        node-version: [20, 18, 16, 14, 12]
+        node-version: [9, 8, 7, 6]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 2
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
-    - name: Docker
-      uses: docker://node:${{ matrix.node-version }}
-      with:
-        args: npm install, npm test
