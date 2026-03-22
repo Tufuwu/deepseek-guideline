@@ -1,3 +1,4 @@
+## 4. Output: GitHub Action
 name: Python application
 
 on:
@@ -16,9 +17,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Install Tox
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox
-    - name: Test with Tox
-      run: tox
+        pip install sphinx
+        pip install -r requirements-travis.txt
+    - name: Run inspekt checkall
+      run: inspekt checkall --disable-style E501,E265,W601,E402,E722,E741 --enable-lint W0611,W1201 --no-license-check
