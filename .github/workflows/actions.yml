@@ -1,6 +1,10 @@
+## GitHub Action
 name: Node CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -8,21 +12,21 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run build
-    - run: npm run serve &
-    - run: npm test
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - run: npm run semantic-release
+    - name: npm install
+      run: npm ci
+
+    - name: npm run dist
+      run: npm run dist
+
+    - name: npm run test:ci
+      run: npm run test:ci
