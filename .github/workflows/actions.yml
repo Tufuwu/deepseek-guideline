@@ -1,15 +1,26 @@
 name: Node CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [6, 8, 10]
+        node-version: [10, 12, 14]
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
 
     steps:
     - uses: actions/checkout@v2
@@ -20,3 +31,22 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+      env:
+        CI: true
+        NODE_ENV: test
+        MONGODB_URL: mongodb://localhost:27017/mydb
+
+    - name: Copy config file
+      run: cp config/test.sample.json config/test.json
+
+    - name: Start server
+      run: NODE_ENV=test node index.js &
+
+    - name: Sleep
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '5s'
+
+    - name: Run tests
+      run: make ci
+
