@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11, 3.12]
+        python-version: [3.8, 3.9, 'nightly']
 
     steps:
     - uses: actions/checkout@v2
@@ -23,8 +23,25 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get install -y librtmp-dev libevent-dev
-        make setup
-    - name: Run tests
+        python -m pip install --upgrade pip
+        pip install simplejson minimock coverage
+    - name: Test with make
       run: |
         make test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Package
+      run: |
+        python setup.py sdist bdist_wheel
+      env:
+        PYPI_USER: "gpodder"
+        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    - name: Publish
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_PASSWORD }}
+        repository_url: https://test.pypi.org/legacy/
